@@ -3,6 +3,8 @@ const fs = require('fs');
 const path = require('path');
 const imagesHero = path.join(__dirname, 'img/heroes');
 let hwrCommandCalled = false;
+let BPCommandCalled=false;
+let selectedHeroes = []
 
 async function handleCommand(bot, msg) {
     const chatId = msg.chat.id;
@@ -21,10 +23,7 @@ async function handleCommand(bot, msg) {
 async function handleMessage(bot, msg) {
     const chatId = msg.chat.id;
 
-    if (!hwrCommandCalled) {
-        return;
-    }
-
+    if (hwrCommandCalled) {
     try {
         const response = await axios.get(`https://api.opendota.com/api/heroStats`);
         const heroStats = response.data;
@@ -40,15 +39,34 @@ async function handleMessage(bot, msg) {
         console.error('request error', error);
         bot.sendMessage(chatId, 'request error');
     }
+}   
+    
+    if (BPCommandCalled) {
+        try{
+            const response = await axios.get(`https://api.opendota.com/api/heroStats`);
+        const heroStats = response.data;
+
+        const userInput = msg.text.toLowerCase();
+
+        const filteredHeroes = heroStats.filter(hero => hero.localized_name.toLowerCase().startsWith(userInput));
+
+        const keyboardOptions = filteredHeroes.map(hero => [{ text: hero.localized_name, callback_data: hero.id.toString() }]);
+
+        bot.sendMessage(chatId, 'Выберите героя', { reply_markup: { inline_keyboard: keyboardOptions } });
+        } catch (error) {
+            console.error('request error', error);
+            bot.sendMessage(chatId, 'request error');
+        } 
+}
+
 }
 
 async function handleCallbackQuery(bot, callbackQuery) {
+
     const chatId = callbackQuery.message.chat.id;
-
-   
-
     const heroId = callbackQuery.data;
 
+    if(hwrCommandCalled){
     try {
         const response = await axios.get(`https://api.opendota.com/api/heroStats`);
         const heroStats = response.data;
@@ -80,9 +98,39 @@ async function handleCallbackQuery(bot, callbackQuery) {
         console.error('request err', error);
         bot.sendMessage(chatId, 'request err');
     }
-
     hwrCommandCalled = false;
+    }
+
+
+    if(BPCommandCalled){
+        const selectedHero = callbackQuery.data;
+        selectedHeroes.push(selectedHero);
+        const heroesText = selectedHeroes.join('\n');
+
+        if (selectedHeroes.length < 5) {
+        await bot.sendMessage(chatId, 'Выберите следующего героя');
+        } else {
+            
+            bot.sendMessage(chatId, 'Выбранные герои:\n' + heroesText);
+            BPCommandCalled = false;
+            selectedHeroes = [];
+        }
+    }
+
 }
 
+async function handleBPCommand(bot, msg) {
+    const chatId = msg.chat.id;
 
-module.exports = { handleCommand, handleMessage, handleCallbackQuery};
+    bot.sendChatAction(chatId, 'typing');
+    bot.sendMessage(chatId, 'Начните вводить имена героев по одному:', {
+        reply_markup: {
+            force_reply: true, 
+            selective: true,
+        },
+    });
+
+    BPCommandCalled = true; 
+}
+
+module.exports = { handleCommand, handleMessage, handleCallbackQuery,handleBPCommand};
