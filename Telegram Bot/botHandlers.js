@@ -117,10 +117,14 @@ async function handleCallbackQuery(bot, callbackQuery) {
                 if (selectedHeroes.length < 5) {
                     await bot.sendMessage(chatId, 'Выберите следующего героя');
                 } else {
-                    const heroScores = await calculateHeroScores(selectedHeroes);
-                    
-                    const resultMessage = `Выбранные герои:\n${selectedHeroes.join('\n')}\n\nРезультаты :\n${JSON.stringify(heroScores, null, 2)}`;
-                    await bot.sendMessage(chatId, resultMessage);
+
+                    const heroScores = await calculateHeroScores(selectedHeroes);   
+                    const heroScoresArray = Object.entries(heroScores);
+                    heroScoresArray.sort((a, b) => a[1] - b[1]);
+                    const sortedHeroScores = Object.fromEntries(heroScoresArray);
+                    const sortedResultMessage = `Топ героев против вражеского пика:\n${Object.keys(sortedHeroScores).map((hero, index) => `${index + 1}. ${hero}`).join('\n')}`;
+
+                    await bot.sendMessage(chatId, sortedResultMessage);
 
                     BPCommandCalled = false;
                     selectedHeroes = [];
