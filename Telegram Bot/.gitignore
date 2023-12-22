@@ -16,7 +16,9 @@ img/
 *.ipa
 *.apk
 .env
+*.db
 
+database.js
 
 parser.js
 versus.json

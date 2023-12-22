@@ -23,7 +23,7 @@ async function handleCommand(bot, msg) {
 
 async function handleMessage(bot, msg) {
     const chatId = msg.chat.id;
-
+    
     if (hwrCommandCalled) {
     try {
         const response = await axios.get(`https://api.opendota.com/api/heroStats`);
