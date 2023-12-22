@@ -19,7 +19,7 @@ function calculateHeroScores(heroNames) {
 
         heroScores[enemyHeroName] = totalCounterScore;
     }
-    console.log(heroScores)
     return heroScores;
 }
 
+module.exports={calculateHeroScores};

@@ -5,6 +5,7 @@ const imagesHero = path.join(__dirname, 'img/heroes');
 let hwrCommandCalled = false;
 let BPCommandCalled=false;
 let selectedHeroes = []
+const{calculateHeroScores}=require('./bestpick')
 
 async function handleCommand(bot, msg) {
     const chatId = msg.chat.id;
@@ -102,21 +103,36 @@ async function handleCallbackQuery(bot, callbackQuery) {
     }
 
 
-    if(BPCommandCalled){
-        const selectedHero = callbackQuery.data;
-        selectedHeroes.push(selectedHero);
-        const heroesText = selectedHeroes.join('\n');
+    if (BPCommandCalled) {
+        try {
+            const response = await axios.get(`https://api.opendota.com/api/heroes`);
+            const heroesData = response.data;
 
-        if (selectedHeroes.length < 5) {
-        await bot.sendMessage(chatId, 'Выберите следующего героя');
-        } else {
-            
-            bot.sendMessage(chatId, 'Выбранные герои:\n' + heroesText);
-            BPCommandCalled = false;
-            selectedHeroes = [];
+            const selectedHero = heroesData.find(hero => hero.id == heroId);
+
+            if (selectedHero) {
+                const heroName = selectedHero.localized_name;
+                selectedHeroes.push(heroName);
+
+                if (selectedHeroes.length < 5) {
+                    await bot.sendMessage(chatId, 'Выберите следующего героя');
+                } else {
+                    const heroScores = await calculateHeroScores(selectedHeroes);
+                    
+                    const resultMessage = `Выбранные герои:\n${selectedHeroes.join('\n')}\n\nРезультаты :\n${JSON.stringify(heroScores, null, 2)}`;
+                    await bot.sendMessage(chatId, resultMessage);
+
+                    BPCommandCalled = false;
+                    selectedHeroes = [];
+                }
+            } else {
+                bot.sendMessage(chatId, `Герой с ID ${heroId} не найден.`);
+            }
+        } catch (error) {
+            console.error('request error', error);
+            bot.sendMessage(chatId, 'request error');
         }
     }
-
 }
 
 async function handleBPCommand(bot, msg) {
