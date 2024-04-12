@@ -13,6 +13,10 @@ class WikipediaSearch {
 
   run() {
     this.rl.question('enter request: ', (query) => {
+      if (query.trim() === '') {
+        throw new Error('Empty input is not allowed.');
+      }
+      
       const searchEngine = new SearchEngine(this.rl);
       searchEngine.search(query);
     });
@@ -87,3 +91,6 @@ class Opener {
 
 const wikiSearch = new WikipediaSearch();
 wikiSearch.run();
+
+
+  

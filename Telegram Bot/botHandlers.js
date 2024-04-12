@@ -7,6 +7,19 @@ let BPCommandCalled=false;
 let selectedHeroes = []
 const{calculateHeroScores}=require('./bestpick')
 
+
+
+async function startCommand(bot, msg) {
+    const chatId = msg.chat.id;
+
+    startMessage='Привет, я бот по Dota 2. Что я умею? ' + '\n' 
+    + '/hwr - вывести долю побед героя' + '\n'
+     + '/bp - вывести лучший выбор героя';
+
+    bot.sendMessage(chatId, startMessage);
+}
+
+
 async function handleCommand(bot, msg) {
     const chatId = msg.chat.id;
 
@@ -153,4 +166,4 @@ async function handleBPCommand(bot, msg) {
     BPCommandCalled = true; 
 }
 
-module.exports = { handleCommand, handleMessage, handleCallbackQuery,handleBPCommand};
+module.exports = { handleCommand, handleMessage, handleCallbackQuery,handleBPCommand,startCommand};
